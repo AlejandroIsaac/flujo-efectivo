@@ -1,0 +1,49 @@
+server:
+  port: 8080
+spring:
+  profiles:
+    active: prod
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    generate-ddl: 'true'
+    database: POSTGRESQL
+    hibernate:
+      ddl-auto: update
+    show-sql: 'true'
+  datasource:
+    username: postgres
+    url: jdbc:postgresql://localhost:5432/flujo-efectivo
+    password: postgre
+
+---
+spring:
+  config:
+    activate:
+      on-profile: qa
+  jpa:
+    database: POSTGRESQL
+    hibernate:
+      ddl-auto: update
+    show-sql: 'true'
+  datasource:
+    username: postgres
+    url: jdbc:postgresql://localhost:5432/flujo-efectivo-qa
+    password: postgre
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    database: POSTGRESQL
+    hibernate:
+      ddl-auto: update
+    show-sql: 'true'
+  datasource:
+    username: postgres
+    url: jdbc:postgresql://localhost:5432/flujo-efectivo-prod
+    password: postgre
