@@ -1,5 +1,6 @@
 package com.api.flujoefectivo.service;
 
+import com.api.flujoefectivo.dto.RootTreeDTO;
 import com.api.flujoefectivo.persistence.entity.RootAccount;
 
 import java.util.List;
@@ -12,4 +13,6 @@ public interface RootAccountService {
     Boolean existById(Long id);
     void deleteById(Long id);
     Optional<RootAccount> findByNameIgnoreCase(String name);
+
+    List<RootTreeDTO> getRootTree();
 }

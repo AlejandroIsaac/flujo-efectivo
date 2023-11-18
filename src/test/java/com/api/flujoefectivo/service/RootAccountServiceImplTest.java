@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,7 +30,7 @@ class RootAccountServiceImplTest {
         RootAccount rootAccount = RootAccount.builder()
                 .name("Capital")
                 .description("guarada el capital")
-                .total(10.0)
+                .total(new BigDecimal(10))
                 .build();
         //cuando llamen a rootAccountRepository simula que consulta a la DB entonces devulve el rootAccount creado.
         Mockito.when(rootAccountRepository.findByNameIgnoreCase("Capital")).thenReturn(Optional.of(rootAccount));

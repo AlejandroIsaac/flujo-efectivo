@@ -40,20 +40,6 @@ public class PrecedingAccountController {
         }else return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 
-    /*
-    * {
-		"idPreceding": 6,
-		"name": "Activo circulante",
-    "description": "Activo circulante",
-    "total": 350.0,
-	  "rootAccount": {
-			"idRoot": 1,
-			"name": "Activos",
-			"description": "Cuenta de activos",
-			"total": 0.0
-		}
-	}*/
-
     @PutMapping
     ResponseEntity<PrecedingAccount> update(@RequestBody PrecedingAccount precedingAccount){
         if (precedingAccountService.existById(precedingAccount.getIdPreceding())){
@@ -69,5 +55,18 @@ public class PrecedingAccountController {
         }else return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-
+    @GetMapping("/rootAccount/{idRoot}")
+    ResponseEntity<List<PrecedingAccount>> getByIdRoot(@PathVariable Long idRoot){
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(precedingAccountService.getByRootAccount(idRoot));
+    }
 }
+
+/*{
+	"name": "Cuentas por pagar",
+    "code": "963",
+    "description": "Cuentas por pagar",
+    "total": 150000.0,
+	"rootAccount": {"idRoot": 2}
+}*/

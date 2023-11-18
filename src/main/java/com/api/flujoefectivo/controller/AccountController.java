@@ -26,6 +26,7 @@ public class AccountController {
         return accountService.getAll();
     }
 
+
     @GetMapping("/name/{name}")
     List<Account> getByNameIgnoreCase(@PathVariable String name){
         return accountService.findByNameIgnoreCase(name);
@@ -36,26 +37,6 @@ public class AccountController {
         return accountService.getById(id);
     }
 
-    /*{
-
-		"name": "Ferrepaz",
-		"code": 101,
-		"description": "provedor atlacomulco",
-		"total": 0.0,
-		"precedingAccount": {
-			"idPreceding": 5,
-			"name": "Cuentas por pagar",
-			"code": "001",
-			"description": "Cuentas por pagar",
-			"total": 1000.0,
-			"rootAccount": {
-				"idRoot": 2,
-				"name": "Pasivos",
-				"description": "Cuenta de pasivos",
-				"total": 100.0
-		}
-	}
-	}*/
     @PostMapping
     ResponseEntity<Account> save(@Valid @RequestBody Account account){
         try{
@@ -69,28 +50,9 @@ public class AccountController {
 
     }
 
-    /*{
-		"name": "Ferrepaz",
-		"code": 101,
-		"description": "provedor atlacomulco",
-		"total": 0.0,
-		"precedingAccount": {
-			"idPreceding": 5,
-			"name": "Cuentas por pagar",
-			"code": "001",
-			"description": "Cuentas por pagar",
-			"total": 1000.0,
-			"rootAccount": {
-				"idRoot": 2,
-				"name": "Pasivos",
-				"description": "Cuenta de pasivos",
-				"total": 100.0
-		}
-	}
-	}*/
     @PutMapping
     ResponseEntity<Account> update(@RequestBody Account account){
-        if(accountService.existById(account.getId())){
+        if(accountService.existById(account.getIdAccount())){
             return new ResponseEntity(accountService.update(account), HttpStatus.OK);
         }else return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
@@ -103,5 +65,21 @@ public class AccountController {
         }else return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
+    @GetMapping("/preceding/{idPreceding}")
+    ResponseEntity<List<Account>> getByPreceding(@PathVariable Long idPreceding){
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(accountService.getByPrecedingId(idPreceding));
+    }
+
 
 }
+
+/*{
+		"name": "Efectivo",
+		"code": 15986,
+		"description": "Dinero en caja",
+		"total": 1000.0,
+		"precedingAccount": {
+			"idPreceding": 10
+	}
+}*/

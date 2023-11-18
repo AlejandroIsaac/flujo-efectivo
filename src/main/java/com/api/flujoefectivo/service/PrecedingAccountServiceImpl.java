@@ -31,4 +31,10 @@ public class PrecedingAccountServiceImpl implements PrecedingAccountService{
     public Boolean existById(Long id) {
         return precedingAccountRepository.existsById(id);
     }
+
+    @Override
+    public List<PrecedingAccount> getByRootAccount(Long idRoot) {
+        return precedingAccountRepository.findByRootAccountIdRoot(idRoot);
+    }
+
 }

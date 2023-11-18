@@ -9,4 +9,5 @@ public interface PrecedingAccountService {
     PrecedingAccount save(PrecedingAccount precedingAccount);
     void deleteById(Long id);
     Boolean existById(Long id);
+    List<PrecedingAccount> getByRootAccount(Long idRoot);
 }

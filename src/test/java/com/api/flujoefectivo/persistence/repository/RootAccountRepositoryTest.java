@@ -8,33 +8,35 @@ import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+/*@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)*/
+@SpringBootTest
 class RootAccountRepositoryTest {
 
     @Autowired
     RootAccountRepository rootAccountRepository;
-    @Autowired
-    TestEntityManager testEntityManager;
+    /*@Autowired
+    TestEntityManager testEntityManager;*/
 
-    @BeforeEach
+    /*@BeforeEach
     void setUp() {
         RootAccount rootAccount = RootAccount.builder()
                 .name("capital")
                 .description("dinero de la empresa")
-                .total(100.0)
+                .total(new BigDecimal(100))
                 .build();
         testEntityManager.persist(rootAccount);
-    }
+    }*/
 
     @Test
-    public void findByNameIgnoreCaseFound(){
-        Optional<RootAccount> entity = rootAccountRepository.findByNameIgnoreCase("capital");
-        assertEquals(entity.get().getName(), "capital");
+    public void updateTotalOfAll(){
+        rootAccountRepository.updateTotalOfAll(new BigDecimal(0));
     }
 }

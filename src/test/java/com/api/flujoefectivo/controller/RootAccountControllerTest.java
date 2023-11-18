@@ -11,6 +11,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,7 +34,7 @@ class RootAccountControllerTest {
                         .idRoot(1L)
                         .name("capital")
                         .description("ganancia")
-                        .total(10.0)
+                        .total(new BigDecimal(10))
                         .build();
 
     }
@@ -44,7 +46,7 @@ class RootAccountControllerTest {
                 RootAccount.builder()
                         .name("capital")
                         .description("ganancia")
-                        .total(10.0)
+                        .total(new BigDecimal(140))
                         .build();
         Mockito.when(rootAccountService.save(rootAccountPost)).thenReturn(rootAccount);
 

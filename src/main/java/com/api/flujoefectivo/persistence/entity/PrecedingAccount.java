@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
@@ -16,16 +17,20 @@ public class PrecedingAccount implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id_preceding")
     private Long idPreceding;
 
     private String name;
     private String code;
     private String description;
-    private Double total;
+    private BigDecimal total;
 
-    @ManyToOne
-    @JoinColumn(name = "id_root_account", insertable = false)
+    @ManyToOne(
+            cascade = CascadeType.MERGE
+    )
+    @JoinColumn(
+            name = "id_root_account",
+            referencedColumnName = "idRoot"
+            )
     private RootAccount rootAccount;
 
 }

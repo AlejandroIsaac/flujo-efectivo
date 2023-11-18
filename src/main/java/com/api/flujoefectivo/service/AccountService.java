@@ -13,4 +13,5 @@ public interface AccountService {
     boolean existById(Long id);
     List<Account> findByNameIgnoreCase(String name);
     Account getById(Long id) throws AccountNotFoundException;
+    List<Account> getByPrecedingId(Long id);
 }

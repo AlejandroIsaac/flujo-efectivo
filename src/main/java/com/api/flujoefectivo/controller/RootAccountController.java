@@ -1,6 +1,7 @@
 package com.api.flujoefectivo.controller;
 
 
+import com.api.flujoefectivo.dto.RootTreeDTO;
 import com.api.flujoefectivo.persistence.entity.RootAccount;
 import com.api.flujoefectivo.service.RootAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ public class RootAccountController {
     public List<RootAccount> getAll(){
         return rootAccountService.findAll();
     }
+
 
     @GetMapping("byName/{name}")
     ResponseEntity<Optional<RootAccount>> getByNameIgnoreCase(@PathVariable String name){
@@ -52,6 +54,15 @@ public class RootAccountController {
         }else return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
-
-
+    @GetMapping("tree")
+    ResponseEntity<List<RootTreeDTO>> getTree(){
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(rootAccountService.getRootTree());
+    }
 }
+/*{
+    "name": "Gastos",
+    "description" : "Pagos que hace la empresa",
+    "total": 100.0
+}*/

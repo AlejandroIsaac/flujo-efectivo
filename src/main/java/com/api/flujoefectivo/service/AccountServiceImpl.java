@@ -55,4 +55,9 @@ public class AccountServiceImpl implements AccountService{
         }
         return accountRepository.findById(id).get();
     }
+
+    @Override
+    public List<Account> getByPrecedingId(Long idPreceding) {
+        return accountRepository.findByPrecedingAccountIdPreceding(idPreceding);
+    }
 }
