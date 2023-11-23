@@ -24,7 +24,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
     }
 
-    @Override
+    /*@Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         Map<String, Object> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->{
@@ -32,5 +32,5 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         });
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-    }
+    }*/
 }

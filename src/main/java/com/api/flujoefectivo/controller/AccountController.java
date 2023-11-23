@@ -9,9 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @Slf4j
 @RestController
 @RequestMapping("/account")
@@ -38,7 +39,7 @@ public class AccountController {
     }
 
     @PostMapping
-    ResponseEntity<Account> save(@Valid @RequestBody Account account){
+    ResponseEntity<Account> save( @RequestBody Account account){
         try{
             //if(account.getId() == null) {
                 return new ResponseEntity(accountService.save(account), HttpStatus.CREATED);

@@ -18,6 +18,10 @@ spring:
     username: postgres
     url: jdbc:postgresql://localhost:5432/flujo-efectivo
     password: postgre
+  spring:
+    mvc:
+      pathmatch:
+        matching-strategy: ant_path_matcher
 
 ---
 spring:
