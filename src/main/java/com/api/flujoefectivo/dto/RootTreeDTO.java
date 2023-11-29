@@ -13,5 +13,5 @@ public class RootTreeDTO {
     private Long idRoot;
     private String name;
     private BigDecimal total;
-    private List<PrecedingTreeDTO> precedingAccountList;
+    private List<RootTreeDTO> children;
 }

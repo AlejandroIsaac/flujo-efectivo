@@ -64,9 +64,9 @@ public class RootAccountServiceImpl implements RootAccountService{
 
     @Override
     public List<RootTreeDTO> getRootTree() {
-        //obtiene todas la raizes
+        //obtiene todas la cuentas raiz
         List<RootAccount> rootAccounts= rootAccountRepository.findAll();
-
+        //Creamos una lista de respuesta
         List<RootTreeDTO> rootTreeDTOS = new ArrayList<>();
         for (RootAccount root :rootAccounts) {
             RootTreeDTO rootTreeDTO = new RootTreeDTO();
@@ -75,28 +75,31 @@ public class RootAccountServiceImpl implements RootAccountService{
             rootTreeDTO.setTotal(root.getTotal());
 
             //por cada raiz obtiene su preceding
-            List<PrecedingTreeDTO> precedingTreeDTOS = new ArrayList<>();
+            List<RootTreeDTO> precedingTreeDTOS = new ArrayList<>();
             List<PrecedingAccount> precedingAccounts = precedingAccountRepository.findByRootAccountIdRoot(root.getIdRoot());
             for (PrecedingAccount preceding: precedingAccounts) {
-                PrecedingTreeDTO precedingTreeDTO = new PrecedingTreeDTO();
-                precedingTreeDTO.setIdPreceding(preceding.getIdPreceding());
+                RootTreeDTO precedingTreeDTO = new RootTreeDTO();
+                precedingTreeDTO.setIdRoot(preceding.getIdPreceding());
                 precedingTreeDTO.setName(preceding.getName());
                 precedingTreeDTO.setTotal(preceding.getTotal());
 
-            //por cada preceding obtiene sus accounts
-                List<AccountTreeDTO> accountTreeDTOS = new ArrayList<>();
+                //por cada preceding obtiene sus accounts
+                List<RootTreeDTO> accountTreeDTOS = new ArrayList<>();
                 List<Account> accounts = accountRepository.findByPrecedingAccountIdPreceding(preceding.getIdPreceding());
                 for ( Account account :accounts) {
-                    AccountTreeDTO accountTreeDTO = new AccountTreeDTO();
-                    accountTreeDTO.setIdAccount(account.getIdAccount());
+                    RootTreeDTO accountTreeDTO = new RootTreeDTO();
+                    accountTreeDTO.setIdRoot(account.getIdAccount());
                     accountTreeDTO.setName(account.getName());
                     accountTreeDTO.setTotal(account.getTotal());
                     accountTreeDTOS.add(accountTreeDTO);
                 }
-                precedingTreeDTO.setAccountList(accountTreeDTOS);
+                //por cada precedin agrega sus Account
+                precedingTreeDTO.setChildren(accountTreeDTOS);
+                //Cada preceding guaradalo en una lista de preceding
                 precedingTreeDTOS.add(precedingTreeDTO);
             }
-            rootTreeDTO.setPrecedingAccountList(precedingTreeDTOS);
+            //por cada cuenta raiz agregar sus precedingAccuont
+            rootTreeDTO.setChildren(precedingTreeDTOS);
 
             rootTreeDTOS.add(rootTreeDTO);
         }

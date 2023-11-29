@@ -34,8 +34,9 @@ public class RootAccountController {
     }
 
     @PostMapping
-    RootAccount save(@RequestBody RootAccount rootAccount){
-        return rootAccountService.save(rootAccount);
+    ResponseEntity<RootAccount> save(@RequestBody RootAccount rootAccount){
+
+        return ResponseEntity.status(HttpStatus.OK).body(rootAccountService.save(rootAccount));
     }
 
     @PutMapping

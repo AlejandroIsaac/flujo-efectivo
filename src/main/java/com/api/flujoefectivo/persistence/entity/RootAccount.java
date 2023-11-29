@@ -26,6 +26,7 @@ public class RootAccount implements Serializable {
     private String name;
     private String description;
     private BigDecimal total;
+    private String code;
     private String debe;
     private String haber;
 }

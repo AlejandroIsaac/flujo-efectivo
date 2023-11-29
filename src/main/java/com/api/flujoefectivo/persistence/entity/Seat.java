@@ -14,8 +14,16 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 public class Seat {
+    @SequenceGenerator(
+            name = "seat_sequence",
+            sequenceName = "seat_sequence",
+            allocationSize = 1,
+            initialValue = 100
+    )
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(
+            generator = "seat_sequence",
+            strategy = GenerationType.SEQUENCE)
     private Long idSeat;
 
     private String date;
