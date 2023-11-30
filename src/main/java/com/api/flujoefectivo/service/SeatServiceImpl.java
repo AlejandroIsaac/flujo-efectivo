@@ -6,6 +6,7 @@ import com.api.flujoefectivo.persistence.entity.RootAccount;
 import com.api.flujoefectivo.persistence.entity.Seat;
 import com.api.flujoefectivo.persistence.repository.AccountRepository;
 import com.api.flujoefectivo.persistence.repository.PrecedingAccountRepository;
+import com.api.flujoefectivo.persistence.repository.RootAccountRepository;
 import com.api.flujoefectivo.persistence.repository.SeatRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ public class SeatServiceImpl implements SeatService{
     @Autowired
     SeatRepository seatRepository;
     @Autowired
+    RootAccountRepository rootAccountRepository;
+    @Autowired
     AccountRepository accountRepository;
     @Autowired
     PrecedingAccountRepository precedingAccountRepository;
@@ -25,19 +28,20 @@ public class SeatServiceImpl implements SeatService{
     @Override
     public Seat add(Seat seat) {
         Long idAccount = seat.getAccountID().getIdAccount();
-        RootAccount rootAccount;
+        RootAccount rootAccount; //raiz de Account
+        RootAccount rootAccountTransfer; //raiz de TranferAccount
         Long idAccountTransfer= seat.getTransferAccount() != null ?
                 seat.getTransferAccount().getIdAccount() : seat.getTransferPrecedingAccount().getIdPreceding();
-        RootAccount rootAccountTransfer;
-        //obtener root de account
+        //obtener rootAccount del Campo AccountId
         if(accountRepository.existsById(idAccount)){
             Account account = accountRepository.findById(idAccount).get();
             rootAccount =account.getPrecedingAccount().getRootAccount();
-        }else {
+        }else {//si el campo AccountId es de tipo PrecedingAccount(al parecer nunca entrara aqui)
             PrecedingAccount precedingAccount = precedingAccountRepository.findById(idAccount).get();
             rootAccount = precedingAccount.getRootAccount();
         }
-        //obtener root de transferaccount
+
+        //obtener rootAccount del campo seat.transferaccount(puedes ser de tipo Account o PrecedingAccount)
         if(accountRepository.existsById(idAccountTransfer)){
             Account account = accountRepository.findById(idAccountTransfer).get();
             rootAccountTransfer =account.getPrecedingAccount().getRootAccount();
@@ -45,10 +49,12 @@ public class SeatServiceImpl implements SeatService{
             PrecedingAccount precedingAccount = precedingAccountRepository.findById(idAccountTransfer).get();
             rootAccountTransfer = precedingAccount.getRootAccount();
         }
-        //obtener comportamiento a travez del debe o haber
+
+        //obtener el valor que viene en seat.debe o seat.haber
+        //compareTo Returns: -1, 0, or 1 as this BigDecimal is numerically less than, equal to, or greater than val.
+        //max Returns the maximum of this BigDecimal and val.
         BigDecimal debe =seat.getDebe();
         BigDecimal Max = seat.getDebe().max(seat.getHaber());
-
         BigDecimal montoImportante;
         if(Max.compareTo(debe) == 0){
             montoImportante = seat.getDebe();
@@ -56,13 +62,15 @@ public class SeatServiceImpl implements SeatService{
         }else {
             montoImportante = seat.getHaber();
         }
+        //definir comportamineto debo o haber para accountId y para tranferAccount
         String debeOhaberAccount = Max.compareTo(debe) == 0 ? "debe" : "haber";
         String debeOhaberAccountTransfer = debeOhaberAccount.equals("haber") ? "debe" : "haber";
 
 
-        //Modificar ambas cuentas segun su debe o haber
+        //Modificar el total de ambas cuentas segun su debe o haber
         BigDecimal balanceTotal;
-        //modifica account
+        BigDecimal balanceTotalRoot;
+        //modifica account si el monto llega por el campo debe
         if (debeOhaberAccount.equals("debe")){
             String behaviorDebe = rootAccount.getDebe();
             switch (behaviorDebe){
@@ -70,32 +78,44 @@ public class SeatServiceImpl implements SeatService{
                     if(accountRepository.existsById(idAccount)){
                         Account account =accountRepository.findById(idAccount).get();
                         balanceTotal = account.getTotal().add(montoImportante);
+                        balanceTotalRoot = rootAccount.getTotal().add(montoImportante);
                         //actualiza la DB
                         accountRepository.updateTotalByName(account.getName(),balanceTotal);
+                        //actualiza el total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccount.getName(),balanceTotalRoot);
                     }else if(precedingAccountRepository.existsById(idAccount)){
                         PrecedingAccount precedingAccount = precedingAccountRepository.findById(idAccount).get();
                         balanceTotal = precedingAccount.getTotal().add(montoImportante);
+                        balanceTotalRoot = rootAccount.getTotal().add(montoImportante);
                         //actualiza la DB
                         precedingAccountRepository.updateTotalByName(precedingAccount.getName(),balanceTotal);
+                        //actualiza el total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccount.getName(),balanceTotalRoot);
                     }
                     break;
                 case "-":
                     if(accountRepository.existsById(idAccount)){
                         Account account =accountRepository.findById(idAccount).get();
                         balanceTotal = account.getTotal().subtract(montoImportante);
+                        balanceTotalRoot = rootAccount.getTotal().subtract(montoImportante);
                         //actualiza la DB
                         accountRepository.updateTotalByName(account.getName(),balanceTotal);
+                        //actualiza el total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccount.getName(),balanceTotalRoot);
                     }else if(precedingAccountRepository.existsById(idAccount)){
                         PrecedingAccount precedingAccount = precedingAccountRepository.findById(idAccount).get();
                         balanceTotal = precedingAccount.getTotal().subtract(montoImportante);
+                        balanceTotalRoot = rootAccount.getTotal().subtract(montoImportante);
                         //actualiza la DB
                         precedingAccountRepository.updateTotalByName(precedingAccount.getName(),balanceTotal);
+                        //actualiza el total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccount.getName(),balanceTotalRoot);
                     }
                     break;
                 default:
                     System.out.println("Debe y haber solo pueden ser + o -");
             }
-
+            //modifica account si el monto llega por el campo haber
         }else if(debeOhaberAccount.equals("haber")) {
             String behaviorHaber = rootAccount.getHaber();
             switch (behaviorHaber){
@@ -103,93 +123,130 @@ public class SeatServiceImpl implements SeatService{
                     if(accountRepository.existsById(idAccount)){
                         Account account =accountRepository.findById(idAccount).get();
                         balanceTotal = account.getTotal().add(montoImportante);
+                        balanceTotalRoot = rootAccount.getTotal().add(montoImportante);
                         //actualiza la DB
                         accountRepository.updateTotalByName(account.getName(),balanceTotal);
+                        //actualiza el total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccount.getName(),balanceTotalRoot);
                     }else if(precedingAccountRepository.existsById(idAccount)){
                         PrecedingAccount precedingAccount = precedingAccountRepository.findById(idAccount).get();
                         balanceTotal = precedingAccount.getTotal().add(montoImportante);
+                        balanceTotalRoot = rootAccount.getTotal().add(montoImportante);
                         //actualiza la DB
                         precedingAccountRepository.updateTotalByName(precedingAccount.getName(),balanceTotal);
+                        //actualiza el total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccount.getName(),balanceTotalRoot);
                     }
                     break;
                 case "-":
                     if(accountRepository.existsById(idAccount)){
                         Account account =accountRepository.findById(idAccount).get();
                         balanceTotal = account.getTotal().subtract(montoImportante);
+                        balanceTotalRoot = rootAccount.getTotal().subtract(montoImportante);
                         //actualiza la DB
                         accountRepository.updateTotalByName(account.getName(),balanceTotal);
+                        //actualiza el total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccount.getName(),balanceTotalRoot);
                     }else if(precedingAccountRepository.existsById(idAccount)){
                         PrecedingAccount precedingAccount = precedingAccountRepository.findById(idAccount).get();
                         balanceTotal = precedingAccount.getTotal().subtract(montoImportante);
+                        balanceTotalRoot = rootAccount.getTotal().subtract(montoImportante);
                         //actualiza la DB
                         precedingAccountRepository.updateTotalByName(precedingAccount.getName(),balanceTotal);
+                        //actualiza el total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccount.getName(),balanceTotalRoot);
                     }
                     break;
                 default:
                     System.out.println("Debe y haber solo pueden ser + o -");
             }
         }
-        //modifica accountTranfer
+
+        //modifica accountTranfer si el monto llega por le debe
         if (debeOhaberAccountTransfer.equals("debe")){
             String behaviorDebe = rootAccountTransfer.getDebe();
             switch (behaviorDebe){
                 case "+":
                     if(accountRepository.existsById(idAccountTransfer)){
-                        Account account =accountRepository.findById(idAccountTransfer).get();
-                        balanceTotal = account.getTotal().add(montoImportante);
+                        Account accountTransfer =accountRepository.findById(idAccountTransfer).get();
+                        balanceTotal = accountTransfer.getTotal().add(montoImportante);
+                        balanceTotalRoot= rootAccountTransfer.getTotal().add(montoImportante);
                         //actualiza la DB
-                        accountRepository.updateTotalByName(account.getName(),balanceTotal);
+                        accountRepository.updateTotalByName(accountTransfer.getName(),balanceTotal);
+                        //actualiza total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccountTransfer.getName(), balanceTotalRoot);
                     }else if(precedingAccountRepository.existsById(idAccountTransfer)){
-                        PrecedingAccount precedingAccount = precedingAccountRepository.findById(idAccountTransfer).get();
-                        balanceTotal = precedingAccount.getTotal().add(montoImportante);
+                        PrecedingAccount precedingAccountTransfer = precedingAccountRepository.findById(idAccountTransfer).get();
+                        balanceTotal = precedingAccountTransfer.getTotal().add(montoImportante);
+                        balanceTotalRoot= rootAccountTransfer.getTotal().add(montoImportante);
                         //actualiza la DB
-                        precedingAccountRepository.updateTotalByName(precedingAccount.getName(),balanceTotal);
+                        precedingAccountRepository.updateTotalByName(precedingAccountTransfer.getName(),balanceTotal);
+                        //actualiza total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccountTransfer.getName(), balanceTotalRoot);
                     }
                     break;
                 case "-":
                     if(accountRepository.existsById(idAccountTransfer)){
-                        Account account =accountRepository.findById(idAccountTransfer).get();
-                        balanceTotal = account.getTotal().subtract(montoImportante);
+                        Account accountTransfer =accountRepository.findById(idAccountTransfer).get();
+                        balanceTotal = accountTransfer.getTotal().subtract(montoImportante);
+                        balanceTotalRoot = rootAccountTransfer.getTotal().subtract(montoImportante);
                         //actualiza la DB
-                        accountRepository.updateTotalByName(account.getName(),balanceTotal);
+                        accountRepository.updateTotalByName(accountTransfer.getName(),balanceTotal);
+                        //actualiza total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccountTransfer.getName(), balanceTotalRoot);
                     }else if(precedingAccountRepository.existsById(idAccountTransfer)){
-                        PrecedingAccount precedingAccount = precedingAccountRepository.findById(idAccountTransfer).get();
-                        balanceTotal = precedingAccount.getTotal().subtract(montoImportante);
+                        PrecedingAccount precedingAccountTranfer = precedingAccountRepository.findById(idAccountTransfer).get();
+                        balanceTotal = precedingAccountTranfer.getTotal().subtract(montoImportante);
+                        balanceTotalRoot = rootAccountTransfer.getTotal().subtract(montoImportante);
                         //actualiza la DB
-                        precedingAccountRepository.updateTotalByName(precedingAccount.getName(),balanceTotal);
+                        precedingAccountRepository.updateTotalByName(precedingAccountTranfer.getName(),balanceTotal);
+                        //actualiza total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccountTransfer.getName(), balanceTotalRoot);
                     }
                     break;
                 default:
                     System.out.println("Debe y haber solo pueden ser + o -");
             }
-
+            //modifica accountTranfer si el monto llega por le haber
         }else if(debeOhaberAccountTransfer.equals("haber")) {
             String behaviorHaber = rootAccountTransfer.getHaber();
             switch (behaviorHaber){
                 case "+":
                     if(accountRepository.existsById(idAccountTransfer)){
-                        Account account =accountRepository.findById(idAccountTransfer).get();
-                        balanceTotal = account.getTotal().add(montoImportante);
+                        Account accountTransfer =accountRepository.findById(idAccountTransfer).get();
+                        balanceTotal = accountTransfer.getTotal().add(montoImportante);
+                        balanceTotalRoot = rootAccountTransfer.getTotal().add(montoImportante);
                         //actualiza la DB
-                        accountRepository.updateTotalByName(account.getName(),balanceTotal);
+                        accountRepository.updateTotalByName(accountTransfer.getName(),balanceTotal);
+                        //actualiza total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccountTransfer.getName(), balanceTotalRoot);
                     }else if(precedingAccountRepository.existsById(idAccountTransfer)){
-                        PrecedingAccount precedingAccount = precedingAccountRepository.findById(idAccountTransfer).get();
-                        balanceTotal = precedingAccount.getTotal().add(montoImportante);
+                        PrecedingAccount precedingAccountTransfer = precedingAccountRepository.findById(idAccountTransfer).get();
+                        balanceTotal = precedingAccountTransfer.getTotal().add(montoImportante);
+                        balanceTotalRoot = rootAccountTransfer.getTotal().add(montoImportante);
                         //actualiza la DB
-                        precedingAccountRepository.updateTotalByName(precedingAccount.getName(),balanceTotal);
+                        precedingAccountRepository.updateTotalByName(precedingAccountTransfer.getName(),balanceTotal);
+                        //actualiza total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccountTransfer.getName(), balanceTotalRoot);
                     }
                     break;
                 case "-":
                     if(accountRepository.existsById(idAccountTransfer)){
-                        Account account =accountRepository.findById(idAccountTransfer).get();
-                        balanceTotal = account.getTotal().subtract(montoImportante);
+                        Account accountTransfer =accountRepository.findById(idAccountTransfer).get();
+                        balanceTotal = accountTransfer.getTotal().subtract(montoImportante);
+                        balanceTotalRoot = rootAccountTransfer.getTotal().subtract(montoImportante);
                         //actualiza la DB
-                        accountRepository.updateTotalByName(account.getName(),balanceTotal);
+                        accountRepository.updateTotalByName(accountTransfer.getName(),balanceTotal);
+                        //actualiza total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccountTransfer.getName(), balanceTotalRoot);
                     }else if(precedingAccountRepository.existsById(idAccountTransfer)){
-                        PrecedingAccount precedingAccount = precedingAccountRepository.findById(idAccountTransfer).get();
-                        balanceTotal = precedingAccount.getTotal().subtract(montoImportante);
+                        PrecedingAccount precedingAccountTransfer = precedingAccountRepository.findById(idAccountTransfer).get();
+                        balanceTotal = precedingAccountTransfer.getTotal().subtract(montoImportante);
+                        balanceTotalRoot = rootAccountTransfer.getTotal().subtract(montoImportante);
                         //actualiza la DB
-                        precedingAccountRepository.updateTotalByName(precedingAccount.getName(),balanceTotal);
+                        precedingAccountRepository.updateTotalByName(precedingAccountTransfer.getName(),balanceTotal);
+                        //actualiza total de Root en la DB
+                        rootAccountRepository.updateTotalByName(rootAccountTransfer.getName(), balanceTotalRoot);
                     }
                     break;
                 default:

@@ -23,4 +23,14 @@ public interface RootAccountRepository extends JpaRepository<RootAccount, Long> 
             value = "update root_account set total =:balanceTotal"
     )
     public void updateTotalOfAll(@Param(value = "balanceTotal") BigDecimal balanceTotal);
+
+
+    @Transactional
+    @Modifying
+    @Query(
+            nativeQuery = true,
+            value = "update root_account set total =:balanceTotal where name=:nameAccount"
+    )
+    public void updateTotalByName(@Param(value = "nameAccount") String nameAccount,@Param(value = "balanceTotal") BigDecimal balanceTotal);
+
 }
